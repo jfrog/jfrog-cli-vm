@@ -5,11 +5,15 @@ on:
     workflows: ["Release jfvm to Homebrew"]
     types:
       - completed
-  workflow_dispatch: 
+  workflow_dispatch:
+
+permissions:
+  contents: write
+  actions: read  # Add this permission to read artifacts
 
 jobs:
   publish:
-    if: ${{ github.event.workflow_run.conclusion == 'success' }}
+    if: ${{ github.event.workflow_run.conclusion == 'success' || github.event_name == 'workflow_dispatch' }}
     runs-on: ubuntu-latest
     steps:
       - name: Checkout tap repository
@@ -19,9 +23,12 @@ jobs:
           token: ${{ secrets.GITHUB_TOKEN }}
 
       - name: Download generated formula
-        uses: actions/download-artifact@v4.3.0
+        uses: dawidd6/action-download-artifact@v2
         with:
+          workflow: release.yml
           name: jfvm.rb
+          workflow_conclusion: success
+          if_no_artifact_found: fail
 
       - name: Move and commit formula
         run: |
@@ -30,5 +37,5 @@ jobs:
           git config user.name "github-actions"
           git config user.email "github-actions@github.com"
           git add Formula/jfvm.rb
-          git commit -m "Update jfvm formula for ${{ github.event.workflow_run.head_branch }}"
+          git commit -m "Update jfvm formula"
           git push

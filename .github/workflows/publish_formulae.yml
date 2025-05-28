@@ -39,6 +39,6 @@ jobs:
           git add Formula/jfvm.rb
           git commit -m "Update jfvm formula"
           
-          # Use the token explicitly in the push URL
-          git remote set-url origin https://${{ secrets.PAT_TOKEN }}@github.com/bhanurp/homebrew-jfvm.git
+          # Fix the token format in the URL
+          git remote set-url origin https://x-access-token:${{ secrets.PAT_TOKEN }}@github.com/bhanurp/homebrew-jfvm.git
           git push

@@ -57,7 +57,7 @@ jobs:
           EOF
 
       - name: Upload formula to artifacts
-        uses: actions/upload-artifact@v3
+        uses: actions/upload-artifact@v3.1.3
         with:
           name: jfvm.rb
           path: jfvm.rb

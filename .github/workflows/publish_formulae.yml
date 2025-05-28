@@ -9,7 +9,7 @@ on:
 
 permissions:
   contents: write
-  actions: read  # Add this permission to read artifacts
+  actions: read
 
 jobs:
   publish:
@@ -20,7 +20,7 @@ jobs:
         uses: actions/checkout@v3
         with:
           repository: bhanurp/homebrew-jfvm
-          token: ${{ secrets.GITHUB_TOKEN }}
+          token: ${{ secrets.PAT_TOKEN }}
 
       - name: Download generated formula
         uses: dawidd6/action-download-artifact@v2
@@ -38,4 +38,7 @@ jobs:
           git config user.email "github-actions@github.com"
           git add Formula/jfvm.rb
           git commit -m "Update jfvm formula"
+          
+          # Use the token explicitly in the push URL
+          git remote set-url origin https://${{ secrets.PAT_TOKEN }}@github.com/bhanurp/homebrew-jfvm.git
           git push

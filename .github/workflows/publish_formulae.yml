@@ -31,14 +31,14 @@ jobs:
           if_no_artifact_found: fail
 
       - name: Move and commit formula
+        env:
+          GH_TOKEN: ${{ secrets.PAT_TOKEN }}
         run: |
           mkdir -p Formula
           mv jfvm.rb Formula/jfvm.rb
-          git config user.name "github-actions"
-          git config user.email "github-actions@github.com"
+          git config user.name github-actions
+          git config user.email github-actions@github.com
           git add Formula/jfvm.rb
           git commit -m "Update jfvm formula"
-          
-          # Fix the token format in the URL
-          git remote set-url origin https://x-access-token:${{ secrets.PAT_TOKEN }}@github.com/bhanurp/homebrew-jfvm.git
-          git push
+          git remote set-url origin https://x-access-token:${GH_TOKEN}@github.com/bhanurp/homebrew-jfvm.git
+          git push origin main

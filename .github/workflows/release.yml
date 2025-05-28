@@ -35,13 +35,15 @@ jobs:
 
       - name: Build binary
         run: |
+          mkdir -p dist
           mkdir -p dist/jfvm-${{ github.ref_name }}
           go build -o dist/jfvm-${{ github.ref_name }}/jfvm
 
-      - name: Create tarball
+      - name: Create release tarball
         run: |
-          cd dist
-          tar -czf jfvm-${{ github.ref_name }}.tar.gz jfvm-${{ github.ref_name }}
+          cp dist/jfvm-${{ github.ref_name }}/jfvm ./jfvm
+          tar -czf jfvm-${{ steps.tag.outputs.tag }}.tar.gz jfvm
+          rm jfvm
 
       - name: Compute SHA256
         id: sha

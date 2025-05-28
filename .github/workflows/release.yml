@@ -5,6 +5,10 @@ on:
     tags:
       - 'v*.*.*'
   workflow_dispatch:
+    inputs:
+      tag:
+        description: 'Tag to release (e.g. v2.0.0)'
+        required: true
 
 jobs:
   build:
@@ -32,10 +36,11 @@ jobs:
         id: sha
         run: echo "sha=$(shasum -a 256 dist/jfvm-${{ github.ref_name }}.tar.gz | awk '{print $1}')" >> $GITHUB_OUTPUT
 
-      - name: Create GitHub Release
+      - name: Upload GitHub release
         uses: softprops/action-gh-release@v1
         with:
-          files: dist/jfvm-${{ github.ref_name }}.tar.gz
+          tag_name: ${{ steps.tag.outputs.tag }}
+          files: jfvm-${{ steps.tag.outputs.tag }}.tar.gz
 
       - name: Generate Homebrew formula
         run: |

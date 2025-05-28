@@ -10,6 +10,9 @@ on:
         description: 'Tag to release (e.g. v2.0.0)'
         required: true
 
+permissions:
+  contents: write
+
 jobs:
   build:
     runs-on: macos-latest
@@ -36,14 +39,11 @@ jobs:
       - name: Build binary
         run: |
           mkdir -p dist
-          mkdir -p dist/jfvm-${{ github.ref_name }}
-          go build -o dist/jfvm-${{ github.ref_name }}/jfvm
+          go build -o dist/jfvm
 
-      - name: Create release tarball
+      - name: Create tarball
         run: |
-          cp dist/jfvm-${{ github.ref_name }}/jfvm ./jfvm
-          tar -czf jfvm-${{ steps.tag.outputs.tag }}.tar.gz jfvm
-          rm jfvm
+          tar -czf jfvm-${{ steps.tag.outputs.tag }}.tar.gz -C dist jfvm
 
       - name: Compute SHA256
         id: sha
@@ -54,6 +54,7 @@ jobs:
         with:
           tag_name: ${{ steps.tag.outputs.tag }}
           files: jfvm-${{ steps.tag.outputs.tag }}.tar.gz
+          token: ${{ secrets.GITHUB_TOKEN }}
 
       - name: Generate Homebrew formula
         run: |
@@ -61,9 +62,9 @@ jobs:
           class Jfvm < Formula
             desc "Manage multiple versions of JFrog CLI"
             homepage "https://github.com/${{ github.repository }}"
-            url "https://github.com/${{ github.repository }}/releases/download/${{ github.ref_name }}/jfvm-${{ github.ref_name }}.tar.gz"
+            url "https://github.com/${{ github.repository }}/releases/download/${{ steps.tag.outputs.tag }}/jfvm-${{ steps.tag.outputs.tag }}.tar.gz"
             sha256 "${{ steps.sha.outputs.sha }}"
-            version "${{ github.ref_name }}"
+            version "${{{ steps.tag.outputs.tag }}#v}"
 
             def install
               bin.install "jfvm"

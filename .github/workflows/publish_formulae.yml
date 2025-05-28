@@ -1,0 +1,33 @@
+name: Publish Homebrew Formula
+
+on:
+  workflow_run:
+    workflows: ["Release jfvm to Homebrew"]
+    types:
+      - completed
+
+jobs:
+  publish:
+    if: ${{ github.event.workflow_run.conclusion == 'success' }}
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout tap repository
+        uses: actions/checkout@v3
+        with:
+          repository: bhanurp/homebrew-jfvm
+          token: ${{ secrets.GITHUB_TOKEN }}
+
+      - name: Download generated formula
+        uses: actions/download-artifact@v3
+        with:
+          name: jfvm.rb
+
+      - name: Move and commit formula
+        run: |
+          mkdir -p Formula
+          mv jfvm.rb Formula/jfvm.rb
+          git config user.name "github-actions"
+          git config user.email "github-actions@github.com"
+          git add Formula/jfvm.rb
+          git commit -m "Update jfvm formula for ${{ github.event.workflow_run.head_branch }}"
+          git push

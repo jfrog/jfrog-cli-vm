@@ -21,6 +21,7 @@ func main() {
 			cmd.Remove,
 			cmd.Clear,
 			cmd.Alias,
+			cmd.Link,
 		},
 	}
 

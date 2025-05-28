@@ -47,6 +47,10 @@ jobs:
         id: sha
         run: echo "sha=$(shasum -a 256 dist/jfvm-${{ github.ref_name }}.tar.gz | awk '{print $1}')" >> $GITHUB_OUTPUT
 
+      - name: Create tarball
+        run: |
+          tar -czf jfvm-${{ steps.tag.outputs.tag }}.tar.gz -C dist jfvm
+
       - name: Upload GitHub Release
         uses: softprops/action-gh-release@v1
         with:

@@ -9,9 +9,10 @@
 
 ## 🎥 Demo
 
-![jfvm demo](https://user-images.githubusercontent.com/your-username/demo.gif)
+https://github.com/user-attachments/assets/6984077c-72ab-4f8c-a11c-671e72870efe
 
-> 📸 Replace the above link with a real GIF after recording a demo.
+https://github.com/user-attachments/assets/32ce3eb1-4f69-49bd-bdc7-9f95cd9ead34
+
 
 ## 🚀 Why jfvm?
 

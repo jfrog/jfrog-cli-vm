@@ -23,7 +23,7 @@ jobs:
           token: ${{ secrets.PAT_TOKEN }}
 
       - name: Download generated formula
-        uses: dawidd6/action-download-artifact@v2
+        uses: dawidd6/action-download-artifact@v6
         with:
           workflow: release.yml
           name: jfvm.rb

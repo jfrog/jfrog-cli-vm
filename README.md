@@ -51,6 +51,8 @@ cd jfrog-cli-vm
 make install
 ```
 
+**Note**: Use `make build` instead of `go build` to ensure the executable is named `jfvm` (not `jfrog-cli-vm`).
+
 ---
 
 ## 📦 Commands

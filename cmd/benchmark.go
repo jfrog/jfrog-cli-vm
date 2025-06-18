@@ -8,9 +8,9 @@ import (
 	"strings"
 	"time"
 
-	"github.com/bhanurp/jfvm/cmd/descriptions"
-	"github.com/bhanurp/jfvm/cmd/utils"
 	"github.com/fatih/color"
+	"github.com/jfrog/jfrog-cli-vm/cmd/descriptions"
+	"github.com/jfrog/jfrog-cli-vm/cmd/utils"
 	"github.com/urfave/cli/v2"
 	"golang.org/x/sync/errgroup"
 )

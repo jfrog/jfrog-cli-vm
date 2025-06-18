@@ -4,7 +4,7 @@ import (
 	"log"
 	"os"
 
-	"github.com/bhanurp/jfvm/cmd"
+	"github.com/jfrog/jfrog-cli-vm/cmd"
 	"github.com/urfave/cli/v2"
 )
 

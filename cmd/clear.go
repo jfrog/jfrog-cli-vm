@@ -2,9 +2,10 @@ package cmd
 
 import (
 	"fmt"
-	"github.com/bhanurp/jfvm/cmd/utils"
-	"github.com/urfave/cli/v2"
 	"os"
+
+	"github.com/jfrog/jfrog-cli-vm/cmd/utils"
+	"github.com/urfave/cli/v2"
 )
 
 var Clear = &cli.Command{

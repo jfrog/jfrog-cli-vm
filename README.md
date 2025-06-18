@@ -35,19 +35,19 @@ No more symlink hacking or hardcoded paths.
 
 ### Via Homebrew (with tap):
 ```bash
-brew tap bhanurp/jfvm
+brew tap jfrog/jfvm
 brew install jfvm
 ```
 
 ### Via one-liner:
 ```bash
-brew install https://raw.githubusercontent.com/bhanureddy/homebrew-jfvm/main/jfvm.rb
+brew install https://raw.githubusercontent.com/jfrog/homebrew-jfrog-cli-vm/main/jfvm.rb
 ```
 
 ### Or Build From Source:
 ```bash
-git clone https://github.com/bhanurp/jfvm.git
-cd jfvm
+git clone https://github.com/jfrog/jfrog-cli-vm.git
+cd jfrog-cli-vm
 make install
 ```
 
@@ -97,7 +97,7 @@ jfvm alias dev 2.74.0
 #### `jfvm link --from <path> --name <n>`
 Links a **locally built `jf` binary** to be used via `jfvm`.
 ```bash
-jfvm link --from /Users/bhanu/go/bin/jf --name local-dev
+jfvm link --from /Users/Jfrog/go/bin/jf --name local-dev
 jfvm use local-dev
 ```
 
@@ -297,4 +297,4 @@ brew uninstall jfvm
 ## 📬 Feedback / Contributions
 PRs and issues welcome! Open source, MIT licensed.
 
-**GitHub:** https://github.com/bhanurp/jfvm
+**GitHub:** https://github.com/jfrog/jfrog-cli-vm

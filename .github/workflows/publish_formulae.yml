@@ -19,7 +19,7 @@ jobs:
       - name: Checkout tap repository
         uses: actions/checkout@v3
         with:
-          repository: bhanurp/homebrew-jfvm
+          repository: jfrog/homebrew-jfrog-cli-vm
           token: ${{ secrets.PAT_TOKEN }}
 
       - name: Download generated formula
@@ -40,5 +40,5 @@ jobs:
           git config user.email github-actions@github.com
           git add Formula/jfvm.rb
           git commit -m "Update jfvm formula"
-          git remote set-url origin https://x-access-token:${GH_TOKEN}@github.com/bhanurp/homebrew-jfvm.git
+          git remote set-url origin https://x-access-token:${GH_TOKEN}@github.com/jfrog/homebrew-jfrog-cli-vm.git
           git push origin main

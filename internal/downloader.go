@@ -9,7 +9,7 @@ import (
 	"path/filepath"
 	"runtime"
 
-	"github.com/bhanurp/jfvm/cmd/utils"
+	"github.com/jfrog/jfrog-cli-vm/cmd/utils"
 )
 
 func mapPlatform(goos, arch string) (string, error) {

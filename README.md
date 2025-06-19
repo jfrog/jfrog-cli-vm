@@ -1,9 +1,9 @@
 # jfvm - JFrog CLI Version Manager
 
-[![CI](https://github.com/bhanurp/jfvm/actions/workflows/release.yml/badge.svg)](https://github.com/bhanurp/jfvm/actions/workflows/release.yml)
-[![Latest Release](https://img.shields.io/github/v/release/bhanurp/jfvm)](https://github.com/bhanurp/jfvm/releases)
-[![License](https://img.shields.io/github/license/bhanurp/jfvm)](https://github.com/bhanurp/jfvm/blob/main/LICENSE)
-[![homebrew installs](https://img.shields.io/badge/homebrew-installs-brightgreen?logo=homebrew)](https://github.com/bhanurp/homebrew-jfvm)
+[![CI](https://github.com/jfrog/jfrog-cli-vm/actions/workflows/release.yml/badge.svg)](https://github.com/jfrog/jfrog-cli-vm/actions/workflows/release.yml)
+[![Latest Release](https://img.shields.io/github/v/release/jfrog/jfrog-cli-vm)](https://github.com/jfrog/jfrog-cli-vm/releases)
+[![License](https://img.shields.io/github/license/jfrog/jfrog-cli-vm)](https://github.com/jfrog/jfrog-cli-vm/blob/main/LICENSE)
+[![homebrew installs](https://img.shields.io/badge/homebrew-installs-brightgreen?logo=homebrew)](https://github.com/jfrog/homebrew-jfrog-cli-vm)
 
 **jfvm** is a powerful CLI tool that helps you manage multiple versions of the [JFrog CLI](https://jfrog.com/getcli/) on your system. It supports auto-installation, version switching, project-specific defaults, local binary linking, aliasing, parallel version comparison, performance benchmarking, and usage analytics — all inspired by tools like `nvm`, `sdkman`, and `volta`.
 
@@ -35,13 +35,13 @@ No more symlink hacking or hardcoded paths.
 
 ### Via Homebrew (with tap):
 ```bash
-brew tap jfrog/jfvm
+brew tap jfrog/jfrog-cli-vm
 brew install jfvm
 ```
 
 ### Via one-liner:
 ```bash
-brew install https://raw.githubusercontent.com/jfrog/homebrew-jfrog-cli-vm/main/jfvm.rb
+brew install https://raw.githubusercontent.com/jfrog/homebrew-jfrog-cli-vm/main/Formula/jfvm.rb
 ```
 
 ### Or Build From Source:
@@ -50,6 +50,8 @@ git clone https://github.com/jfrog/jfrog-cli-vm.git
 cd jfrog-cli-vm
 make install
 ```
+
+**Note**: Use `make build` instead of `go build` to ensure the executable is named `jfvm` (not `jfrog-cli-vm`).
 
 ---
 

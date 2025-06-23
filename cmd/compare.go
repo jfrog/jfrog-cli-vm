@@ -312,32 +312,81 @@ func displaySideBySideDiff(output1, output2, version1, version2 string, noColor,
 		greenColor = color.New(color.FgGreen, color.Bold)
 	)
 
-	// Determine column width
-	var columnWidth int
+	// Determine display strategy based on content
 	if fullWidth {
-		// No truncation when full-width is enabled
-		columnWidth = -1
+		// Full-width mode: display long lines vertically for readability
+		displayVerticalDiff(lines1, lines2, version1, version2, noColor, blueColor, redColor, greenColor)
 	} else {
-		// Default truncation
-		columnWidth = 38
+		// Standard mode: side-by-side with reasonable truncation
+		displayStandardSideBySide(lines1, lines2, version1, version2, noColor, blueColor, redColor, greenColor, maxLines)
 	}
+}
 
-	// Create separator line based on column width
-	var separatorLine string
-	var headerFormat string
-	if fullWidth {
-		// For full width, use dynamic width based on content
-		separatorLine = strings.Repeat("─", 120)
-		headerFormat = "%s │ %s\n"
-	} else {
-		totalWidth := columnWidth*2 + 5 // 2 columns + separators + markers
-		separatorLine = strings.Repeat("─", totalWidth)
-		headerFormat = fmt.Sprintf("%%-%ds │ %%-%ds\n", columnWidth, columnWidth)
+func displayVerticalDiff(lines1, lines2 []string, version1, version2 string, noColor bool, blueColor, redColor, greenColor *color.Color) {
+	maxLines := len(lines1)
+	if len(lines2) > maxLines {
+		maxLines = len(lines2)
 	}
 
 	// Header
+	fmt.Printf("─────────────────────────────────────────────────────────────────────────────────────\n")
+	fmt.Printf("📋 FULL-WIDTH DIFF: %s vs %s\n", blueColor.Sprint(version1), blueColor.Sprint(version2))
+	fmt.Printf("─────────────────────────────────────────────────────────────────────────────────────\n\n")
+
+	for i := 0; i < maxLines; i++ {
+		line1 := ""
+		line2 := ""
+
+		if i < len(lines1) {
+			line1 = lines1[i]
+		}
+		if i < len(lines2) {
+			line2 = lines2[i]
+		}
+
+		if line1 != line2 {
+			if line1 != "" {
+				marker := "-"
+				if line2 == "" {
+					marker = "-"
+				} else {
+					marker = "~"
+				}
+				if !noColor {
+					line1 = redColor.Sprint(line1)
+				}
+				fmt.Printf("[%s] %s: %s\n", marker, version1, line1)
+			}
+			if line2 != "" {
+				marker := "+"
+				if line1 == "" {
+					marker = "+"
+				} else {
+					marker = "~"
+				}
+				if !noColor {
+					line2 = greenColor.Sprint(line2)
+				}
+				fmt.Printf("[%s] %s: %s\n", marker, version2, line2)
+			}
+			if line1 != "" && line2 != "" {
+				fmt.Println() // Add spacing between diff blocks
+			}
+		} else if line1 != "" {
+			// Lines are identical and not empty
+			fmt.Printf("    %s\n", line1)
+		}
+	}
+}
+
+func displayStandardSideBySide(lines1, lines2 []string, version1, version2 string, noColor bool, blueColor, redColor, greenColor *color.Color, maxLines int) {
+	columnWidth := 50
+	totalWidth := columnWidth*2 + 7
+	separatorLine := strings.Repeat("─", totalWidth)
+
+	// Header
 	fmt.Printf("%s\n", separatorLine)
-	fmt.Printf(headerFormat, blueColor.Sprintf("%s", version1), blueColor.Sprintf("%s", version2))
+	fmt.Printf("%-*s │ %-*s\n", columnWidth, blueColor.Sprintf("%s", version1), columnWidth, blueColor.Sprintf("%s", version2))
 	fmt.Printf("%s\n", separatorLine)
 
 	for i := 0; i < maxLines; i++ {
@@ -351,16 +400,17 @@ func displaySideBySideDiff(output1, output2, version1, version2 string, noColor,
 			line2 = lines2[i]
 		}
 
-		// Truncate long lines for display only if not full-width
-		if !fullWidth && columnWidth > 0 {
-			if len(line1) > columnWidth {
-				line1 = line1[:columnWidth-3] + "..."
-			}
-			if len(line2) > columnWidth {
-				line2 = line2[:columnWidth-3] + "..."
-			}
+		// Truncate long lines for display
+		displayLine1 := line1
+		displayLine2 := line2
+		if len(line1) > columnWidth {
+			displayLine1 = line1[:columnWidth-3] + "..."
+		}
+		if len(line2) > columnWidth {
+			displayLine2 = line2[:columnWidth-3] + "..."
 		}
 
+		// Apply colors and markers
 		marker1 := " "
 		marker2 := " "
 
@@ -368,27 +418,23 @@ func displaySideBySideDiff(output1, output2, version1, version2 string, noColor,
 			if line1 != "" && line2 == "" {
 				marker1 = "-"
 				if !noColor {
-					line1 = redColor.Sprint(line1)
+					displayLine1 = redColor.Sprint(displayLine1)
 				}
 			} else if line1 == "" && line2 != "" {
 				marker2 = "+"
 				if !noColor {
-					line2 = greenColor.Sprint(line2)
+					displayLine2 = greenColor.Sprint(displayLine2)
 				}
 			} else {
 				marker1 = "~"
 				marker2 = "~"
 				if !noColor {
-					line1 = redColor.Sprint(line1)
-					line2 = greenColor.Sprint(line2)
+					displayLine1 = redColor.Sprint(displayLine1)
+					displayLine2 = greenColor.Sprint(displayLine2)
 				}
 			}
 		}
 
-		if fullWidth {
-			fmt.Printf("%s%s │ %s%s\n", marker1, line1, marker2, line2)
-		} else {
-			fmt.Printf("%s%-*s │ %s%s\n", marker1, columnWidth, line1, marker2, line2)
-		}
+		fmt.Printf("%s%-*s │ %s%-*s\n", marker1, columnWidth, displayLine1, marker2, columnWidth, displayLine2)
 	}
 }

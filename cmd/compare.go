@@ -54,6 +54,11 @@ var Compare = &cli.Command{
 			Usage: "Show execution timing information",
 			Value: true,
 		},
+		&cli.BoolFlag{
+			Name:  "full-width",
+			Usage: "Show full width output without truncation",
+			Value: false,
+		},
 	},
 	Action: func(c *cli.Context) error {
 		args := c.Args().Slice()
@@ -128,7 +133,7 @@ var Compare = &cli.Command{
 		}
 
 		// Display results
-		displayComparison(results[0], results[1], c.Bool("unified"), c.Bool("no-color"), c.Bool("timing"))
+		displayComparison(results[0], results[1], c.Bool("unified"), c.Bool("no-color"), c.Bool("timing"), c.Bool("full-width"))
 
 		return nil
 	},
@@ -182,7 +187,7 @@ func executeJFCommand(ctx context.Context, version string, jfCommand []string) (
 	return result, nil
 }
 
-func displayComparison(result1, result2 ExecutionResult, unified, noColor, showTiming bool) {
+func displayComparison(result1, result2 ExecutionResult, unified, noColor, showTiming, fullWidth bool) {
 	// Setup colors
 	var (
 		redColor   = color.New(color.FgRed)
@@ -254,7 +259,7 @@ func displayComparison(result1, result2 ExecutionResult, unified, noColor, showT
 	if unified {
 		displayUnifiedDiff(output1, output2, result1.Version, result2.Version, noColor)
 	} else {
-		displaySideBySideDiff(output1, output2, result1.Version, result2.Version, noColor)
+		displaySideBySideDiff(output1, output2, result1.Version, result2.Version, noColor, fullWidth)
 	}
 }
 
@@ -292,7 +297,7 @@ func displayUnifiedDiff(output1, output2, version1, version2 string, noColor boo
 	}
 }
 
-func displaySideBySideDiff(output1, output2, version1, version2 string, noColor bool) {
+func displaySideBySideDiff(output1, output2, version1, version2 string, noColor, fullWidth bool) {
 	lines1 := strings.Split(output1, "\n")
 	lines2 := strings.Split(output2, "\n")
 
@@ -307,10 +312,33 @@ func displaySideBySideDiff(output1, output2, version1, version2 string, noColor 
 		greenColor = color.New(color.FgGreen, color.Bold)
 	)
 
+	// Determine column width
+	var columnWidth int
+	if fullWidth {
+		// No truncation when full-width is enabled
+		columnWidth = -1
+	} else {
+		// Default truncation
+		columnWidth = 38
+	}
+
+	// Create separator line based on column width
+	var separatorLine string
+	var headerFormat string
+	if fullWidth {
+		// For full width, use dynamic width based on content
+		separatorLine = strings.Repeat("─", 120)
+		headerFormat = "%s │ %s\n"
+	} else {
+		totalWidth := columnWidth*2 + 5 // 2 columns + separators + markers
+		separatorLine = strings.Repeat("─", totalWidth)
+		headerFormat = fmt.Sprintf("%%-%ds │ %%-%ds\n", columnWidth, columnWidth)
+	}
+
 	// Header
-	fmt.Printf("─────────────────────────────────────────────────────────────────────────────────────\n")
-	fmt.Printf("%-40s │ %-40s\n", blueColor.Sprintf("%s", version1), blueColor.Sprintf("%s", version2))
-	fmt.Printf("─────────────────────────────────────────────────────────────────────────────────────\n")
+	fmt.Printf("%s\n", separatorLine)
+	fmt.Printf(headerFormat, blueColor.Sprintf("%s", version1), blueColor.Sprintf("%s", version2))
+	fmt.Printf("%s\n", separatorLine)
 
 	for i := 0; i < maxLines; i++ {
 		line1 := ""
@@ -323,12 +351,14 @@ func displaySideBySideDiff(output1, output2, version1, version2 string, noColor 
 			line2 = lines2[i]
 		}
 
-		// Truncate long lines for display
-		if len(line1) > 38 {
-			line1 = line1[:35] + "..."
-		}
-		if len(line2) > 38 {
-			line2 = line2[:35] + "..."
+		// Truncate long lines for display only if not full-width
+		if !fullWidth && columnWidth > 0 {
+			if len(line1) > columnWidth {
+				line1 = line1[:columnWidth-3] + "..."
+			}
+			if len(line2) > columnWidth {
+				line2 = line2[:columnWidth-3] + "..."
+			}
 		}
 
 		marker1 := " "
@@ -355,6 +385,10 @@ func displaySideBySideDiff(output1, output2, version1, version2 string, noColor 
 			}
 		}
 
-		fmt.Printf("%s%-39s │ %s%-39s\n", marker1, line1, marker2, line2)
+		if fullWidth {
+			fmt.Printf("%s%s │ %s%s\n", marker1, line1, marker2, line2)
+		} else {
+			fmt.Printf("%s%-*s │ %s%s\n", marker1, columnWidth, line1, marker2, line2)
+		}
 	}
 }

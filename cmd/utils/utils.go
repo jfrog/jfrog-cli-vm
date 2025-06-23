@@ -31,8 +31,9 @@ func GetVersionFromProjectFile() (string, error) {
 		fmt.Printf("Failed to read .jfrog-version file: %v\n", err)
 		return "", err
 	}
-	fmt.Printf(".jfrog-version content: %s\n", string(data))
-	return string(data), nil
+	version := strings.TrimSpace(string(data))
+	fmt.Printf(".jfrog-version content: %s\n", version)
+	return version, nil
 }
 
 func ResolveAlias(name string) (string, error) {
@@ -41,7 +42,7 @@ func ResolveAlias(name string) (string, error) {
 	if err != nil {
 		return "", err
 	}
-	return string(data), nil
+	return strings.TrimSpace(string(data)), nil
 }
 
 // ResolveVersionOrAlias attempts to resolve an alias first, then falls back to the original name

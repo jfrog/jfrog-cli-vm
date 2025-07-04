@@ -2,6 +2,8 @@ package utils
 
 import (
 	"fmt"
+	"io"
+	"net/http"
 	"os"
 	"path/filepath"
 	"strings"
@@ -73,4 +75,42 @@ func CheckVersionExists(version string) error {
 	}
 
 	return nil
+}
+
+// GetLatestVersion fetches the latest version from GitHub API
+func GetLatestVersion() (string, error) {
+	// Use GitHub API to get the latest release
+	url := "https://api.github.com/repos/jfrog/jfrog-cli/releases/latest"
+	resp, err := http.Get(url)
+	if err != nil {
+		return "", fmt.Errorf("failed to fetch latest version: %w", err)
+	}
+	defer resp.Body.Close()
+	if resp.StatusCode != http.StatusOK {
+		return "", fmt.Errorf("failed to fetch latest version: HTTP %d", resp.StatusCode)
+	}
+	body, err := io.ReadAll(resp.Body)
+	if err != nil {
+		return "", fmt.Errorf("failed to read response body: %w", err)
+	}
+	content := string(body)
+	tagNameIndex := strings.Index(content, `"tag_name":"`)
+	if tagNameIndex == -1 {
+		return "", fmt.Errorf("could not find tag_name in response")
+	}
+
+	// Extract the version starting after "tag_name":"
+	startIndex := tagNameIndex + len(`"tag_name":"`)
+	endIndex := strings.Index(content[startIndex:], `"`)
+	if endIndex == -1 {
+		return "", fmt.Errorf("could not parse tag_name value")
+	}
+
+	version := content[startIndex : startIndex+endIndex]
+	if !strings.HasPrefix(version, "v2.") {
+		return "", fmt.Errorf("invalid version format: %s", version)
+	}
+	version = strings.TrimPrefix(version, "v")
+
+	return version, nil
 }

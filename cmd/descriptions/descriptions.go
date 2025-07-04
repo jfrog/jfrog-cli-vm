@@ -56,6 +56,10 @@ var Use = CommandDescription{
 			Description: "Switch to JFrog CLI version 2.74.0",
 		},
 		{
+			Command:     "jfvm use latest",
+			Description: "Switch to the latest available version (downloads if not installed)",
+		},
+		{
 			Command:     "jfvm use prod",
 			Description: "Switch to the version aliased as 'prod'",
 		},
@@ -116,8 +120,8 @@ var Alias = CommandDescription{
 			Description: "Create alias 'prod' pointing to version 2.73.0",
 		},
 		{
-			Command:     "jfvm alias staging latest",
-			Description: "Create alias 'staging' pointing to latest version",
+			Command:     "jfvm alias staging 2.77.0",
+			Description: "Create alias 'staging' pointing to specific version",
 		},
 	},
 }

@@ -54,6 +54,11 @@ var Compare = &cli.Command{
 			Usage: "Show execution timing information",
 			Value: true,
 		},
+		&cli.BoolFlag{
+			Name:  "full-width",
+			Usage: "Show full width output without truncation",
+			Value: false,
+		},
 	},
 	Action: func(c *cli.Context) error {
 		args := c.Args().Slice()
@@ -128,7 +133,7 @@ var Compare = &cli.Command{
 		}
 
 		// Display results
-		displayComparison(results[0], results[1], c.Bool("unified"), c.Bool("no-color"), c.Bool("timing"))
+		displayComparison(results[0], results[1], c.Bool("unified"), c.Bool("no-color"), c.Bool("timing"), c.Bool("full-width"))
 
 		return nil
 	},
@@ -182,7 +187,7 @@ func executeJFCommand(ctx context.Context, version string, jfCommand []string) (
 	return result, nil
 }
 
-func displayComparison(result1, result2 ExecutionResult, unified, noColor, showTiming bool) {
+func displayComparison(result1, result2 ExecutionResult, unified, noColor, showTiming, fullWidth bool) {
 	// Setup colors
 	var (
 		redColor   = color.New(color.FgRed)
@@ -254,7 +259,7 @@ func displayComparison(result1, result2 ExecutionResult, unified, noColor, showT
 	if unified {
 		displayUnifiedDiff(output1, output2, result1.Version, result2.Version, noColor)
 	} else {
-		displaySideBySideDiff(output1, output2, result1.Version, result2.Version, noColor)
+		displaySideBySideDiff(output1, output2, result1.Version, result2.Version, noColor, fullWidth)
 	}
 }
 
@@ -292,7 +297,7 @@ func displayUnifiedDiff(output1, output2, version1, version2 string, noColor boo
 	}
 }
 
-func displaySideBySideDiff(output1, output2, version1, version2 string, noColor bool) {
+func displaySideBySideDiff(output1, output2, version1, version2 string, noColor, fullWidth bool) {
 	lines1 := strings.Split(output1, "\n")
 	lines2 := strings.Split(output2, "\n")
 
@@ -307,10 +312,82 @@ func displaySideBySideDiff(output1, output2, version1, version2 string, noColor 
 		greenColor = color.New(color.FgGreen, color.Bold)
 	)
 
+	// Determine display strategy based on content
+	if fullWidth {
+		// Full-width mode: display long lines vertically for readability
+		displayVerticalDiff(lines1, lines2, version1, version2, noColor, blueColor, redColor, greenColor)
+	} else {
+		// Standard mode: side-by-side with reasonable truncation
+		displayStandardSideBySide(lines1, lines2, version1, version2, noColor, blueColor, redColor, greenColor, maxLines)
+	}
+}
+
+func displayVerticalDiff(lines1, lines2 []string, version1, version2 string, noColor bool, blueColor, redColor, greenColor *color.Color) {
+	maxLines := len(lines1)
+	if len(lines2) > maxLines {
+		maxLines = len(lines2)
+	}
+
 	// Header
 	fmt.Printf("─────────────────────────────────────────────────────────────────────────────────────\n")
-	fmt.Printf("%-40s │ %-40s\n", blueColor.Sprintf("%s", version1), blueColor.Sprintf("%s", version2))
-	fmt.Printf("─────────────────────────────────────────────────────────────────────────────────────\n")
+	fmt.Printf("📋 FULL-WIDTH DIFF: %s vs %s\n", blueColor.Sprint(version1), blueColor.Sprint(version2))
+	fmt.Printf("─────────────────────────────────────────────────────────────────────────────────────\n\n")
+
+	for i := 0; i < maxLines; i++ {
+		line1 := ""
+		line2 := ""
+
+		if i < len(lines1) {
+			line1 = lines1[i]
+		}
+		if i < len(lines2) {
+			line2 = lines2[i]
+		}
+
+		if line1 != line2 {
+			if line1 != "" {
+				marker := "-"
+				if line2 == "" {
+					marker = "-"
+				} else {
+					marker = "~"
+				}
+				if !noColor {
+					line1 = redColor.Sprint(line1)
+				}
+				fmt.Printf("[%s] %s: %s\n", marker, version1, line1)
+			}
+			if line2 != "" {
+				marker := "+"
+				if line1 == "" {
+					marker = "+"
+				} else {
+					marker = "~"
+				}
+				if !noColor {
+					line2 = greenColor.Sprint(line2)
+				}
+				fmt.Printf("[%s] %s: %s\n", marker, version2, line2)
+			}
+			if line1 != "" && line2 != "" {
+				fmt.Println() // Add spacing between diff blocks
+			}
+		} else if line1 != "" {
+			// Lines are identical and not empty
+			fmt.Printf("    %s\n", line1)
+		}
+	}
+}
+
+func displayStandardSideBySide(lines1, lines2 []string, version1, version2 string, noColor bool, blueColor, redColor, greenColor *color.Color, maxLines int) {
+	columnWidth := 50
+	totalWidth := columnWidth*2 + 7
+	separatorLine := strings.Repeat("─", totalWidth)
+
+	// Header
+	fmt.Printf("%s\n", separatorLine)
+	fmt.Printf("%-*s │ %-*s\n", columnWidth, blueColor.Sprintf("%s", version1), columnWidth, blueColor.Sprintf("%s", version2))
+	fmt.Printf("%s\n", separatorLine)
 
 	for i := 0; i < maxLines; i++ {
 		line1 := ""
@@ -324,13 +401,16 @@ func displaySideBySideDiff(output1, output2, version1, version2 string, noColor 
 		}
 
 		// Truncate long lines for display
-		if len(line1) > 38 {
-			line1 = line1[:35] + "..."
+		displayLine1 := line1
+		displayLine2 := line2
+		if len(line1) > columnWidth {
+			displayLine1 = line1[:columnWidth-3] + "..."
 		}
-		if len(line2) > 38 {
-			line2 = line2[:35] + "..."
+		if len(line2) > columnWidth {
+			displayLine2 = line2[:columnWidth-3] + "..."
 		}
 
+		// Apply colors and markers
 		marker1 := " "
 		marker2 := " "
 
@@ -338,23 +418,23 @@ func displaySideBySideDiff(output1, output2, version1, version2 string, noColor 
 			if line1 != "" && line2 == "" {
 				marker1 = "-"
 				if !noColor {
-					line1 = redColor.Sprint(line1)
+					displayLine1 = redColor.Sprint(displayLine1)
 				}
 			} else if line1 == "" && line2 != "" {
 				marker2 = "+"
 				if !noColor {
-					line2 = greenColor.Sprint(line2)
+					displayLine2 = greenColor.Sprint(displayLine2)
 				}
 			} else {
 				marker1 = "~"
 				marker2 = "~"
 				if !noColor {
-					line1 = redColor.Sprint(line1)
-					line2 = greenColor.Sprint(line2)
+					displayLine1 = redColor.Sprint(displayLine1)
+					displayLine2 = greenColor.Sprint(displayLine2)
 				}
 			}
 		}
 
-		fmt.Printf("%s%-39s │ %s%-39s\n", marker1, line1, marker2, line2)
+		fmt.Printf("%s%-*s │ %s%-*s\n", marker1, columnWidth, displayLine1, marker2, columnWidth, displayLine2)
 	}
 }

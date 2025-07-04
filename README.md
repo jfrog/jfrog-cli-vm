@@ -19,6 +19,7 @@ https://github.com/user-attachments/assets/32ce3eb1-4f69-49bd-bdc7-9f95cd9ead34
 Managing different versions of the JFrog CLI across multiple projects and environments can be challenging. `jfvm` simplifies this by:
 
 - Installing any released version of the `jf` binary
+- Automatically fetching and using the latest version with `jfvm use latest`
 - Allowing you to link locally built versions
 - Automatically switching versions based on a `.jfrog-version` file
 - Letting you define named aliases (e.g., `prod`, `dev`)
@@ -66,9 +67,10 @@ jfvm install 2.74.0
 ```
 
 #### `jfvm use <version or alias>`
-Activates the given version or alias. If `.jfrog-version` exists in the current directory, that will be used if no argument is passed.
+Activates the given version or alias. If `.jfrog-version` exists in the current directory, that will be used if no argument is passed. Use `latest` to automatically fetch and activate the most recent JFrog CLI version (downloads if not already installed).
 ```bash
 jfvm use 2.74.0
+jfvm use latest
 jfvm use prod
 ```
 
@@ -250,6 +252,10 @@ jfvm benchmark $OLD_VERSION,$NEW_VERSION -- rt ping --format json > performance.
 
 # Compare outputs in automated testing
 jfvm compare baseline canary -- rt search "*.jar" --unified --no-color
+
+# Always use the latest version in CI/CD pipelines
+jfvm use latest
+jf --version
 ```
 
 ---
@@ -283,11 +289,13 @@ brew uninstall jfvm
 - **Version Testing**: Compare behavior across JFrog CLI versions before upgrading
 - **Performance Monitoring**: Track performance regressions between releases
 - **Usage Analytics**: Understand which commands and versions are used most
+- **Latest Features**: Easily switch to the latest version with `jfvm use latest` to test new features
 
 ### DevOps Engineers
 - **CI/CD Integration**: Automate version comparison in deployment pipelines
 - **Performance Benchmarks**: Ensure new versions meet performance requirements
 - **Migration Planning**: Analyze compatibility before major version upgrades
+- **Automated Updates**: Use `jfvm use latest` in deployment scripts to always use the most recent stable version
 
 ### Enterprise Environments
 - **Compliance Tracking**: Monitor which versions are being used across teams

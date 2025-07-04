@@ -25,14 +25,36 @@ var Use = &cli.Command{
 			v := c.Args().Get(0)
 			fmt.Printf("Received argument: %s\n", v)
 
-			// Try to resolve alias (silently fallback if not found)
-			resolved, err := utils.ResolveAlias(v)
-			if err == nil {
-				version = strings.TrimSpace(resolved)
-				fmt.Printf("Using alias '%s' resolved to version: %s\n", v, version)
+			// Handle "latest" parameter
+			if strings.ToLower(v) == "latest" {
+				fmt.Println("Fetching latest version...")
+				latestVersion, err := utils.GetLatestVersion()
+				if err != nil {
+					return fmt.Errorf("failed to get latest version: %w", err)
+				}
+				version = latestVersion
+				fmt.Printf("Latest version: %s\n", version)
+
+				// Check if latest version is already installed
+				binPath := filepath.Join(utils.JfvmVersions, version, utils.BinaryName)
+				if _, err := os.Stat(binPath); os.IsNotExist(err) {
+					fmt.Printf("Latest version %s not found locally. Downloading...\n", version)
+					if err := internal.DownloadAndInstall(version); err != nil {
+						return fmt.Errorf("failed to download latest version: %w", err)
+					}
+				} else {
+					fmt.Printf("Latest version %s is already installed.\n", version)
+				}
 			} else {
-				// don't log anything — just fallback silently
-				version = v
+				// Try to resolve alias (silently fallback if not found)
+				resolved, err := utils.ResolveAlias(v)
+				if err == nil {
+					version = strings.TrimSpace(resolved)
+					fmt.Printf("Using alias '%s' resolved to version: %s\n", v, version)
+				} else {
+					// don't log anything — just fallback silently
+					version = v
+				}
 			}
 		} else {
 			v, err := utils.GetVersionFromProjectFile()
@@ -43,13 +65,16 @@ var Use = &cli.Command{
 			fmt.Printf("Using version from .jfrog-version: %s\n", version)
 		}
 
-		binPath := filepath.Join(utils.JfvmVersions, version, utils.BinaryName)
-		fmt.Printf("Checking if binary exists at: %s\n", binPath)
+		// For non-latest versions, check if binary exists and install if needed
+		if c.Args().Len() == 0 || strings.ToLower(c.Args().Get(0)) != "latest" {
+			binPath := filepath.Join(utils.JfvmVersions, version, utils.BinaryName)
+			fmt.Printf("Checking if binary exists at: %s\n", binPath)
 
-		if _, err := os.Stat(binPath); os.IsNotExist(err) {
-			fmt.Printf("Version %s not found locally. Installing...\n", version)
-			if err := internal.DownloadAndInstall(version); err != nil {
-				return fmt.Errorf("auto-install failed: %w", err)
+			if _, err := os.Stat(binPath); os.IsNotExist(err) {
+				fmt.Printf("Version %s not found locally. Installing...\n", version)
+				if err := internal.DownloadAndInstall(version); err != nil {
+					return fmt.Errorf("auto-install failed: %w", err)
+				}
 			}
 		}
 
